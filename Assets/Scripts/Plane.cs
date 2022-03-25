@@ -6,7 +6,7 @@ using UnityEngine.Events;
 public class Plane : MonoBehaviour
 {
     [SerializeField] PlayerInput playerInput;
-    [SerializeField] private Rigidbody rgbd;
+    [SerializeField] Rigidbody rgbd;
     [SerializeField] float thrust = 8000;
     [SerializeField] float pitchDeg = 100;
     [SerializeField] float rollDeg = 100;
@@ -26,4 +26,6 @@ public class Plane : MonoBehaviour
         Vector3 totalThrust = transform.up * Physics.gravity.magnitude * thrust * playerInput.throttle * Time.fixedDeltaTime;
         rgbd.AddForce(totalThrust);
     }
+
+
 }
