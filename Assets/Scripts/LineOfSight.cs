@@ -4,15 +4,12 @@ using UnityEngine;
 
 public class LineOfSight : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField]
+    GameObject plane;
 
     // Update is called once per frame
     void Update()
     {
-        
+        transform.LookAt(plane.GetComponent<Transform>());
     }
 }

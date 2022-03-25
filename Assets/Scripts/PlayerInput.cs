@@ -5,17 +5,11 @@ using UnityEngine.InputSystem;
 
 public class PlayerInput : MonoBehaviour
 {
-    [SerializeField] private Rigidbody rgbd;
-    [SerializeField] float thrust;
-    [SerializeField] float pitchDeg;
-    [SerializeField] float rollDeg;
-    [SerializeField] float yawDeg;
-
     PlayerControls controls;
-    float throttle;
-    float yaw;
-    float pitch;
-    float roll;
+    public float throttle { get; private set; }
+    public float yaw { get; private set; }
+    public float pitch { get; private set; }
+    public float roll { get; private set; }
 
     void Awake()
     {
@@ -23,7 +17,6 @@ public class PlayerInput : MonoBehaviour
 
         // Callback Funtion with Lambda expression, ctx == context
         controls.Gameplay.Throttle.performed += ctx => Throttle(ctx);
-        controls.Gameplay.Throttle.canceled += ctx => Debug.Log("Cancelled");
         controls.Gameplay.Yaw.performed += ctx => Yaw(ctx);
         controls.Gameplay.Pitch.performed += ctx => Pitch(ctx, true);
         controls.Gameplay.Roll.performed += ctx => Roll(ctx, true);
@@ -34,7 +27,7 @@ public class PlayerInput : MonoBehaviour
         };
     }
 
-    private void Throttle(InputAction.CallbackContext ctx)
+    public void Throttle(InputAction.CallbackContext ctx)
     {
         // Map [-1,1] => [0, 1]
         throttle = (ctx.ReadValue<float>() + 1) / 2;
@@ -75,22 +68,5 @@ public class PlayerInput : MonoBehaviour
     private void OnDisable()
     {
         controls.Gameplay.Disable();
-    }
-
-    private void FixedUpdate()
-    {
-        // Roll, Pitch, Yaw
-        transform.Rotate(
-            pitch * pitchDeg * Time.fixedDeltaTime,
-            yaw * yawDeg * Time.fixedDeltaTime,
-            roll * rollDeg * Time.fixedDeltaTime,
-            Space.Self
-        );
-
-        // Thrust
-        Vector3 totalThrust = transform.up * Physics.gravity.magnitude * thrust * throttle * Time.fixedDeltaTime;
-        rgbd.AddForce(totalThrust);
-
-        Debug.Log("Throttle: " + totalThrust.magnitude);
     }
 }

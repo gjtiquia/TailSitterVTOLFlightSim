@@ -181,11 +181,17 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 170715445}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92db0dd3c13d74f189226bf3d4a31efd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerInput: {fileID: 170715449}
+  rgbd: {fileID: 170715447}
+  thrust: 8000
+  pitchDeg: 100
+  rollDeg: 100
+  yawDeg: 100
 --- !u!114 &170715449
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -198,11 +204,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be84e5d92a6b540f59957ca0738435a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rgbd: {fileID: 170715447}
-  thrust: 8000
-  pitchDeg: 100
-  rollDeg: 100
-  yawDeg: 100
 --- !u!1 &290052348
 GameObject:
   m_ObjectHideFlags: 0
@@ -826,6 +827,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 156b9dd8b30d34a70a343914389b0522, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  plane: {fileID: 170715445}
 --- !u!1 &1621523827
 GameObject:
   m_ObjectHideFlags: 0
@@ -1149,11 +1151,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be84e5d92a6b540f59957ca0738435a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rgbd: {fileID: 0}
-  thrust: 0
-  pitchDeg: 0
-  rollDeg: 0
-  yawDeg: 0
 --- !u!1 &2090950446
 GameObject:
   m_ObjectHideFlags: 0
