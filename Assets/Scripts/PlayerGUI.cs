@@ -1,21 +1,46 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerGUI : MonoBehaviour
 {
-    [SerializeField] FixedWing fixedWing;
+    [SerializeField] PlayerInput playerInput;
+    [SerializeField] Plane plane;
 
-    [SerializeField]
+    [SerializeField] GameObject playerInputObject;
+    Text playerInputText;
 
-    // Update is called once per frame
+    [SerializeField] GameObject thrustObject;
+    Text thrustText;
+
+    [SerializeField] GameObject localRotationObject;
+    Text localRotationText;
+
+    [SerializeField] GameObject angularRatesObject;
+    Text angularRatesText;
+
+    private void Start()
+    {
+        thrustText = thrustObject.GetComponent<Text>();
+        playerInputText = playerInputObject.GetComponent<Text>();
+        localRotationText = localRotationObject.GetComponent<Text>();
+        angularRatesText = angularRatesObject.GetComponent<Text>();
+    }
+
     void FixedUpdate()
     {
-
-        string thrust = "Thrust: " + fixedWing.thrust;
-        string torque = "Steering Torque: " + fixedWing.steeringTorque.ToString("F5");
+        thrustText.text = "Thrust: " + plane.thrust;
 
 
-        
+        playerInputText.text =
+            "Throttle: " + playerInput.throttle +
+            ", Pitch: " + playerInput.pitch +
+            ", Roll: " + playerInput.roll +
+            ", Yaw: " + playerInput.yaw;
+
+        localRotationText.text = "Local Rotation: " + plane.localRotation;
+
+        angularRatesText.text = "Angular Rates: " + new Vector3(plane.x_rate, plane.y_rate, plane.z_rate);
     }
 }

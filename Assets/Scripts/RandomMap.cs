@@ -21,7 +21,7 @@ public class RandomMap : MonoBehaviour
             var x = Random.Range(xMin, xMax);
             var z = Random.Range(zMin, zMax);
 
-            var pos = new Vector3(x, 500, z);
+            var pos = new Vector3(x, 0, z);
             var rotation = Quaternion.identity;
 
             Instantiate(cubePrefab, pos, rotation);
