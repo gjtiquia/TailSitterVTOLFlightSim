@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class Plane : MonoBehaviour
+public class FixedWing : MonoBehaviour
 {
     [SerializeField] PlayerInput playerInput;
     [SerializeField] Rigidbody rgbd;
     [SerializeField] float maxThrust = 8000;
-    [SerializeField] float pitchDeg = 100;
-    [SerializeField] float rollDeg = 100;
-    [SerializeField] float yawDeg = 100;
 
     [Header("Drag")]
     [SerializeField] float dragForward = 1;
@@ -37,21 +34,9 @@ public class Plane : MonoBehaviour
     public Vector3 localAngularVelocity { get; private set; }
     public float angleOfAttack { get; private set; }
 
+    public Vector3 thrust { get; private set; }
+    public Vector3 steeringTorque { get; private set; }
 
-    //void FixedUpdate()
-    //{
-    //    // Roll, Pitch, Yaw
-    //    transform.Rotate(
-    //        playerInput.pitch * pitchDeg * Time.fixedDeltaTime,
-    //        playerInput.yaw * yawDeg * Time.fixedDeltaTime,
-    //        playerInput.roll * rollDeg * Time.fixedDeltaTime,
-    //        Space.Self
-    //    );
-
-    //    // Thrust
-    //    Vector3 totalThrust = transform.up * Physics.gravity.magnitude * maxThrust * playerInput.throttle * Time.fixedDeltaTime;
-    //    rgbd.AddForce(totalThrust);
-    //}
 
     void CalculateState(float dt)
     {
@@ -62,28 +47,16 @@ public class Plane : MonoBehaviour
         CalculateAngleOfAttack();
     }
 
-    void DebugState()
-    {
-        Debug.Log(
-            "State: " +
-            "Velocity: " + velocity + ", " +
-            "Local Velocity: " + localVelocity + ", "
-            //"AoA: " + angleOfAttack
-        );
-    }
-
     void CalculateAngleOfAttack()
     {
         // Original:
-        //angleOfAttack = Mathf.Atan2(-localVelocity.y, localVelocity.z);
-
-        // Modified:
-        angleOfAttack = Mathf.Atan2(localVelocity.z, localVelocity.y);
+        angleOfAttack = Mathf.Atan2(-localVelocity.y, localVelocity.z);
     }
 
     void UpdateThrust()
     {
-        rgbd.AddRelativeForce(playerInput.throttle * maxThrust * Vector3.up);
+        thrust = playerInput.throttle * maxThrust * Vector3.forward;
+        rgbd.AddRelativeForce(thrust);
     }
 
     void UpdateDrag()
@@ -104,47 +77,32 @@ public class Plane : MonoBehaviour
 
     Vector3 CalculateLift(float angleOfAttack, Vector3 rightAxis, float liftPower, AnimationCurve aoaCurve, AnimationCurve inducedDragCurve)
     {
-        //var liftVelocity = new Vector3(0, -localVelocity.y, 0);
         var liftVelocity = Vector3.ProjectOnPlane(localVelocity, rightAxis);    //project velocity onto YZ plane
         var v2 = liftVelocity.sqrMagnitude;                                     //square of velocity
                                                                                 //lift = velocity^2 * coefficient * liftPower
                                                                                 //coefficient varies with AOA
-        //var liftCoefficient = aoaCurve.Evaluate(angleOfAttack * Mathf.Rad2Deg);
-        var liftCoefficient = 0.1f;
+        var liftCoefficient = aoaCurve.Evaluate(angleOfAttack * Mathf.Rad2Deg);
         var liftForce = v2 * liftCoefficient * liftPower;
         //lift is perpendicular to velocity
-        //var liftDirection = Vector3.Cross(liftVelocity.normalized, rightAxis);
-        var liftDirection = new Vector3(0, 0, -1);
+        var liftDirection = Vector3.Cross(liftVelocity.normalized, rightAxis);
         var lift = liftDirection * liftForce;
-
-        // Debug
-        Debug.Log(
-            "Lift Velocity: " + liftVelocity + ", " +
-            //"AoA: " + angleOfAttack * Mathf.Rad2Deg + ", " +
-            //"CL: " + liftCoefficient + ", " +
-            "Lift Force: " + liftForce + ", " +
-            "Lift Direction: " + liftDirection
-        );
-
         //induced drag varies with square of lift coefficient
-        //var dragForce = liftCoefficient * liftCoefficient;
-        //var dragDirection = -liftVelocity.normalized;
-        //var inducedDrag = dragDirection * v2 * dragForce * this.inducedDrag * inducedDragCurve.Evaluate(Mathf.Max(0, localVelocity.y));
-        //return lift + inducedDrag;
-        return lift;
+        var dragForce = liftCoefficient * liftCoefficient;
+        var dragDirection = -liftVelocity.normalized;
+        var inducedDrag = dragDirection * v2 * dragForce * this.inducedDrag * inducedDragCurve.Evaluate(Mathf.Max(0, localVelocity.z));
+        return lift + inducedDrag;
     }
 
-    Vector3 UpdateLift()
+    void UpdateLift()
     {
         var liftForce = CalculateLift(
-            angleOfAttack, -Vector3.forward,
+            angleOfAttack, Vector3.right,
             liftPower,
             liftAOACurve,
             inducedDragCurve
         );
 
         rgbd.AddRelativeForce(liftForce);
-        return liftForce;
     }
 
     float CalculateSteering(float dt, float angularVelocity, float targetVelocity, float acceleration)
@@ -159,7 +117,7 @@ public class Plane : MonoBehaviour
         var speed = Mathf.Max(0, localVelocity.z);
         var steeringPower = steeringCurve.Evaluate(speed);
 
-        Vector3 controlInput = new Vector3(playerInput.pitch, playerInput.roll, playerInput.yaw);
+        Vector3 controlInput = new Vector3(playerInput.pitch, playerInput.yaw, playerInput.roll);
         var targetAV = Vector3.Scale(controlInput, turnSpeed * steeringPower);
         var av = localAngularVelocity * Mathf.Rad2Deg;
 
@@ -169,7 +127,8 @@ public class Plane : MonoBehaviour
             CalculateSteering(dt, av.z, targetAV.z, turnAcceleration.z * steeringPower)
         );
 
-        rgbd.AddRelativeTorque(correction * Mathf.Deg2Rad, ForceMode.VelocityChange);    //ignore rigidbody mass
+        steeringTorque = correction * Mathf.Deg2Rad;
+        rgbd.AddRelativeTorque(steeringTorque, ForceMode.VelocityChange);    //ignore rigidbody mass
     }
 
     void UpdateAngularDrag()
@@ -186,17 +145,11 @@ public class Plane : MonoBehaviour
         // Calculate States
         CalculateState(dt);
 
-        // Debug
-        DebugState();
-
         // Apply Updates
         UpdateThrust();
-        Vector3 liftForce = UpdateLift();
-        //UpdateSteering(dt);
-        //UpdateDrag();
-
-        // Debug
-        //Debug.Log("Lift force: " + liftForce);
+        UpdateLift();
+        UpdateSteering(dt);
+        UpdateDrag();
 
         // Calculate again for other systems to read the new state
         CalculateState(dt);
