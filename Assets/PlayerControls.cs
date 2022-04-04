@@ -71,6 +71,15 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Level Switch"",
+                    ""type"": ""Value"",
+                    ""id"": ""43e3edaf-5e1a-4112-aa05-f7e05bd3acfb"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -86,15 +95,37 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""f91cfb08-8945-4ec7-a742-74bb06e4d549"",
+                    ""name"": ""1D Axis"",
+                    ""id"": ""bc664ba0-4e01-4573-8d6c-bc84639fd23f"",
+                    ""path"": ""1DAxis"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Throttle"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""negative"",
+                    ""id"": ""965e6d8d-64e2-4bc8-8ec1-743050b5013a"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Throttle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""positive"",
+                    ""id"": ""7238a4f4-1633-4d31-a45a-fd3839e549d0"",
                     ""path"": ""<Keyboard>/w"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Throttle"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": """",
@@ -238,6 +269,50 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
                     ""action"": ""Reset"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""67ec9c18-1fd1-4423-b5aa-3691aa15b758"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Level Switch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""1D Axis"",
+                    ""id"": ""51240fc8-458f-4786-988c-982d0020b434"",
+                    ""path"": ""1DAxis"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Level Switch"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""negative"",
+                    ""id"": ""700ba31f-7c11-410d-8334-848239c80a2d"",
+                    ""path"": ""<Keyboard>/u"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Level Switch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""positive"",
+                    ""id"": ""6a4532ba-cf3f-43ee-a049-dcd827c24ce9"",
+                    ""path"": ""<Keyboard>/o"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Level Switch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         }
@@ -251,6 +326,7 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
         m_Gameplay_Roll = m_Gameplay.FindAction("Roll", throwIfNotFound: true);
         m_Gameplay_Pitch = m_Gameplay.FindAction("Pitch", throwIfNotFound: true);
         m_Gameplay_Reset = m_Gameplay.FindAction("Reset", throwIfNotFound: true);
+        m_Gameplay_LevelSwitch = m_Gameplay.FindAction("Level Switch", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -315,6 +391,7 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Roll;
     private readonly InputAction m_Gameplay_Pitch;
     private readonly InputAction m_Gameplay_Reset;
+    private readonly InputAction m_Gameplay_LevelSwitch;
     public struct GameplayActions
     {
         private @PlayerControls m_Wrapper;
@@ -324,6 +401,7 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
         public InputAction @Roll => m_Wrapper.m_Gameplay_Roll;
         public InputAction @Pitch => m_Wrapper.m_Gameplay_Pitch;
         public InputAction @Reset => m_Wrapper.m_Gameplay_Reset;
+        public InputAction @LevelSwitch => m_Wrapper.m_Gameplay_LevelSwitch;
         public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -348,6 +426,9 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
                 @Reset.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnReset;
                 @Reset.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnReset;
                 @Reset.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnReset;
+                @LevelSwitch.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnLevelSwitch;
+                @LevelSwitch.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnLevelSwitch;
+                @LevelSwitch.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnLevelSwitch;
             }
             m_Wrapper.m_GameplayActionsCallbackInterface = instance;
             if (instance != null)
@@ -367,6 +448,9 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
                 @Reset.started += instance.OnReset;
                 @Reset.performed += instance.OnReset;
                 @Reset.canceled += instance.OnReset;
+                @LevelSwitch.started += instance.OnLevelSwitch;
+                @LevelSwitch.performed += instance.OnLevelSwitch;
+                @LevelSwitch.canceled += instance.OnLevelSwitch;
             }
         }
     }
@@ -378,5 +462,6 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
         void OnRoll(InputAction.CallbackContext context);
         void OnPitch(InputAction.CallbackContext context);
         void OnReset(InputAction.CallbackContext context);
+        void OnLevelSwitch(InputAction.CallbackContext context);
     }
 }

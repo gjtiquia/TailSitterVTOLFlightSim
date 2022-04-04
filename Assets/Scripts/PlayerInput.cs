@@ -13,10 +13,13 @@ public class PlayerInput : MonoBehaviour
     public float yaw { get; private set; }
     public float pitch { get; private set; }
     public float roll { get; private set; }
+    public bool levelSwitch { get; private set; }
 
     void Awake()
     {
         controls = new PlayerControls();
+
+        levelSwitch = false;
 
         // Callback Funtion with Lambda expression, ctx == context
         controls.Gameplay.Throttle.performed += ctx => Throttle(ctx);
@@ -28,6 +31,7 @@ public class PlayerInput : MonoBehaviour
             transform.position = new Vector3(-1.6f, 2f, 10.51f);
             transform.eulerAngles = new Vector3(0, 146.78f, 0);
         };
+        controls.Gameplay.LevelSwitch.performed += ctx => LevelSwitch(ctx);
     }
 
     public void Throttle(InputAction.CallbackContext ctx)
@@ -67,6 +71,19 @@ public class PlayerInput : MonoBehaviour
         }
 
         if (Mathf.Abs(roll) < deadzoneSize) roll = 0;
+    }
+
+    private void LevelSwitch(InputAction.CallbackContext ctx)
+    {
+        var levelOn = ctx.ReadValue<float>();
+        if (levelOn == 1)
+        {
+            levelSwitch = true;
+        }
+        else if (levelOn == -1)
+        {
+            levelSwitch = false;
+        }
     }
 
     private void OnEnable()
