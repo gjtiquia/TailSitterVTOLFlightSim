@@ -76,7 +76,7 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
                     ""name"": ""Level Switch"",
                     ""type"": ""Value"",
                     ""id"": ""43e3edaf-5e1a-4112-aa05-f7e05bd3acfb"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -273,7 +273,7 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""67ec9c18-1fd1-4423-b5aa-3691aa15b758"",
-                    ""path"": """",
+                    ""path"": ""<HID::FrSky Radiomaster TX12 Joystick>/slider1"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -284,7 +284,7 @@ public partial class @PlayerControls : IInputActionCollection2, IDisposable
                 {
                     ""name"": ""1D Axis"",
                     ""id"": ""51240fc8-458f-4786-988c-982d0020b434"",
-                    ""path"": ""1DAxis"",
+                    ""path"": ""1DAxis(minValue=0)"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

@@ -80,7 +80,7 @@ public class PlayerInput : MonoBehaviour
         {
             levelSwitch = true;
         }
-        else if (levelOn == -1)
+        else
         {
             levelSwitch = false;
         }

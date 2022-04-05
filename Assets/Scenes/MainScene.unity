@@ -217,7 +217,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &170715446
 Transform:
   m_ObjectHideFlags: 0
@@ -267,11 +267,13 @@ MonoBehaviour:
   playerInput: {fileID: 170715449}
   rgbd: {fileID: 170715447}
   maxThrust: 10000
-  maxHoverPitchRate: 10
+  maxHoverPitchRate: 720
   maxHoverRollRate: 720
   maxHoverYawRate: 540
   hoverExpo: 0.69
+  hoverExpoYaw: 0.69
   hoverSuperExpo: 0.7
+  hoverSuperExpoYaw: 0.7
   maxLevelPitchRate: 90
   maxLevelRollRate: 90
   maxLevelYawRate: 45
@@ -1220,11 +1222,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be8f3c96b7cf6478389e4eb8972e18d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xMin: -50
-  xMax: 50
-  zMin: -50
-  zMax: 50
-  numberOfCubes: 100
+  xMin: -500
+  xMax: 500
+  zMin: -500
+  zMax: 500
+  numberOfCubes: 200
   cubePrefab: {fileID: 2241041670459829539, guid: 420bc958a2c8d42aa817de94de153e29, type: 3}
 --- !u!1 &384919090
 GameObject:
@@ -1486,7 +1488,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &532217545
 Transform:
   m_ObjectHideFlags: 0
@@ -2097,7 +2099,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!81 &963194226
 AudioListener:
   m_ObjectHideFlags: 0
@@ -3787,7 +3789,9 @@ MonoBehaviour:
   maxHoverRollRate: 10
   maxHoverYawRate: 540
   hoverExpo: 0.69
+  hoverExpoYaw: 0.69
   hoverSuperExpo: 0.7
+  hoverSuperExpoYaw: 0.7
   maxLevelPitchRate: 90
   maxLevelRollRate: 90
   maxLevelYawRate: 45
@@ -3968,7 +3972,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1941539192
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4019,12 +4023,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerInput: {fileID: 1941539193}
   rgbd: {fileID: 1941539195}
-  maxThrust: 10000
-  maxHoverPitchRate: 3
+  maxThrust: 20000
+  maxHoverPitchRate: 720
   maxHoverRollRate: 720
   maxHoverYawRate: 540
   hoverExpo: 0.69
+  hoverExpoYaw: 0.69
   hoverSuperExpo: 0.7
+  hoverSuperExpoYaw: 0.7
   maxLevelPitchRate: 90
   maxLevelRollRate: 90
   maxLevelYawRate: 45

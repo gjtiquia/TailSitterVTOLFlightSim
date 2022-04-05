@@ -66,7 +66,6 @@ public class Plane : MonoBehaviour
     void CalculateAngleOfAttack()
     {
         angleOfAttack = Mathf.Atan2(-localVelocity.y, localVelocity.z);
-
     }
 
     Vector3 CalculateLift(float angleOfAttack, Vector3 rightAxis, float liftPower, AnimationCurve aoaCurve, AnimationCurve inducedDragCurve)
