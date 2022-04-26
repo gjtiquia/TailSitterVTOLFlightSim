@@ -31,6 +31,14 @@ public class Plane : MonoBehaviour
     [SerializeField] float inducedDragPower;
     [SerializeField] AnimationCurve inducedDragCurve;
 
+    [Header("Drag")]
+    [SerializeField] AnimationCurve dragForward;
+    [SerializeField] AnimationCurve dragBack;
+    [SerializeField] AnimationCurve dragLeft;
+    [SerializeField] AnimationCurve dragRight;
+    [SerializeField] AnimationCurve dragTop;
+    [SerializeField] AnimationCurve dragBottom;
+
     public bool hoverMode => playerInput.levelSwitch == false;
     public Vector3 thrust { get; private set; }
     public Vector3 torque { get; private set; }
@@ -41,6 +49,7 @@ public class Plane : MonoBehaviour
     public Vector3 totalLift { get; private set; }
     public Vector3 inducedLift { get; private set; }
     public Vector3 inducedDrag { get; private set; }
+    public Vector3 drag { get; private set; }
 
     public float x_input { get; private set; }
     public float y_input { get; private set; }
@@ -185,6 +194,25 @@ public class Plane : MonoBehaviour
         rgbd.AddRelativeForce(totalLift);
     }
 
+    void UpdateDrag(float dt)
+    {
+        var lv = localVelocity;
+        var lv2 = lv.sqrMagnitude;  //velocity squared
+                                    //calculate coefficient of drag depending on direction on velocity
+
+        var coefficient = Utilities.Scale6(
+            lv.normalized,
+            dragRight.Evaluate(Mathf.Abs(lv.x)), dragLeft.Evaluate(Mathf.Abs(lv.x)),
+            dragTop.Evaluate(Mathf.Abs(lv.y)), dragBottom.Evaluate(Mathf.Abs(lv.y)),
+            dragForward.Evaluate(Mathf.Abs(lv.z)), dragBack.Evaluate(Mathf.Abs(lv.z))
+        );
+
+        //drag = coefficient.magnitude * lv2 * -lv.normalized;    //drag is opposite direction of velocity
+        drag = coefficient.magnitude * lv2 * -lv.normalized;    //drag is opposite direction of velocity
+
+        rgbd.AddRelativeForce(drag);
+    }
+
     private void FixedUpdate()
     {
         var dt = Time.deltaTime;
@@ -198,6 +226,7 @@ public class Plane : MonoBehaviour
         UpdateThrust(dt);
         UpdateLift(dt);
         UpdateAngle(dt);
+        UpdateDrag(dt);
 
         CalculateState();
     }
