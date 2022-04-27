@@ -7,198 +7,227 @@ public class Plane : MonoBehaviour
 {
     [SerializeField] PlayerInput playerInput;
     [SerializeField] Rigidbody rgbd;
-    [SerializeField] float maxThrust = 8000;
-    [SerializeField] float pitchDeg = 100;
-    [SerializeField] float rollDeg = 100;
-    [SerializeField] float yawDeg = 100;
 
-    [Header("Drag")]
-    [SerializeField] float dragForward = 1;
-    [SerializeField] float dragBack = 1;
-    [SerializeField] float dragLeft = 1;
-    [SerializeField] float dragRight = 1;
-    [SerializeField] float dragTop = 1;
-    [SerializeField] float dragBottom = 1;
-    [SerializeField] Vector3 angularDrag;
+    [Header("Physical Parameters")]
+    [SerializeField] float maxThrust = 8000;
+
+    [Header("Hover Flight")]
+    [SerializeField] float maxHoverPitchRate = 720;
+    [SerializeField] float maxHoverRollRate = 720;
+    [SerializeField] float maxHoverYawRate = 540;
+    [SerializeField] float hoverExpo = 0.69f;
+    [SerializeField] float hoverExpoYaw = 0.69f;
+    [SerializeField] float hoverSuperExpo = 0.7f;
+    [SerializeField] float hoverSuperExpoYaw = 0.7f;
+
+    [Header("Level Flight")]
+    [SerializeField] float maxLevelPitchRate = 90;
+    [SerializeField] float maxLevelRollRate = 90;
+    [SerializeField] float maxLevelYawRate = 45;
 
     [Header("Lift")]
     [SerializeField] float liftPower;
     [SerializeField] AnimationCurve liftAOACurve;
-    [SerializeField] float inducedDrag;
+    [SerializeField] float inducedDragPower;
     [SerializeField] AnimationCurve inducedDragCurve;
 
-    [Header("Steering")]
-    [SerializeField] Vector3 turnSpeed;
-    [SerializeField] Vector3 turnAcceleration;
-    [SerializeField] AnimationCurve steeringCurve;
+    [Header("Drag")]
+    [SerializeField] AnimationCurve dragForward;
+    [SerializeField] AnimationCurve dragBack;
+    [SerializeField] AnimationCurve dragLeft;
+    [SerializeField] AnimationCurve dragRight;
+    [SerializeField] AnimationCurve dragTop;
+    [SerializeField] AnimationCurve dragBottom;
 
+    public bool hoverMode => playerInput.levelSwitch == false;
+    public Vector3 thrust { get; private set; }
+    public Vector3 torque { get; private set; }
+    public Vector3 localRotation { get; private set; }
     public Vector3 velocity { get; private set; }
     public Vector3 localVelocity { get; private set; }
-    public Vector3 localAngularVelocity { get; private set; }
     public float angleOfAttack { get; private set; }
+    public Vector3 totalLift { get; private set; }
+    public Vector3 inducedLift { get; private set; }
+    public Vector3 inducedDrag { get; private set; }
+    public Vector3 drag { get; private set; }
 
+    public float x_input { get; private set; }
+    public float y_input { get; private set; }
+    public float z_input { get; private set; }
 
-    //void FixedUpdate()
-    //{
-    //    // Roll, Pitch, Yaw
-    //    transform.Rotate(
-    //        playerInput.pitch * pitchDeg * Time.fixedDeltaTime,
-    //        playerInput.yaw * yawDeg * Time.fixedDeltaTime,
-    //        playerInput.roll * rollDeg * Time.fixedDeltaTime,
-    //        Space.Self
-    //    );
+    public float x_maxRate { get; private set; }
+    public float y_maxRate { get; private set; }
+    public float z_maxRate { get; private set; }
 
-    //    // Thrust
-    //    Vector3 totalThrust = transform.up * Physics.gravity.magnitude * maxThrust * playerInput.throttle * Time.fixedDeltaTime;
-    //    rgbd.AddForce(totalThrust);
-    //}
+    public float x_rate { get; private set; }
+    public float y_rate { get; private set; }
+    public float z_rate { get; private set; }
 
-    void CalculateState(float dt)
+    void CalculateState()
     {
         var invRotation = Quaternion.Inverse(rgbd.rotation);
         velocity = rgbd.velocity;
         localVelocity = invRotation * velocity;  //transform world velocity into local space
-        localAngularVelocity = invRotation * rgbd.angularVelocity;  //transform into local space
+        localRotation = transform.localEulerAngles;
         CalculateAngleOfAttack();
-    }
-
-    void DebugState()
-    {
-        Debug.Log(
-            "State: " +
-            "Velocity: " + velocity + ", " +
-            "Local Velocity: " + localVelocity + ", "
-            //"AoA: " + angleOfAttack
-        );
     }
 
     void CalculateAngleOfAttack()
     {
-        // Original:
-        //angleOfAttack = Mathf.Atan2(-localVelocity.y, localVelocity.z);
-
-        // Modified:
-        angleOfAttack = Mathf.Atan2(localVelocity.z, localVelocity.y);
-    }
-
-    void UpdateThrust()
-    {
-        rgbd.AddRelativeForce(playerInput.throttle * maxThrust * Vector3.up);
-    }
-
-    void UpdateDrag()
-    {
-        var lv = localVelocity;
-        var lv2 = lv.sqrMagnitude;  //velocity squared
-                                    //calculate coefficient of drag depending on direction on velocity
-        var coefficient = Utilities.Scale6(
-            lv.normalized,
-            dragRight, dragLeft,
-            dragTop, dragBottom,
-            dragForward, dragBack
-        );
-
-        var drag = coefficient.magnitude * lv2 * -lv.normalized;    //drag is opposite direction of velocity
-        rgbd.AddRelativeForce(drag);
+        angleOfAttack = Mathf.Atan2(-localVelocity.y, localVelocity.z);
     }
 
     Vector3 CalculateLift(float angleOfAttack, Vector3 rightAxis, float liftPower, AnimationCurve aoaCurve, AnimationCurve inducedDragCurve)
     {
-        //var liftVelocity = new Vector3(0, -localVelocity.y, 0);
         var liftVelocity = Vector3.ProjectOnPlane(localVelocity, rightAxis);    //project velocity onto YZ plane
         var v2 = liftVelocity.sqrMagnitude;                                     //square of velocity
                                                                                 //lift = velocity^2 * coefficient * liftPower
                                                                                 //coefficient varies with AOA
-        //var liftCoefficient = aoaCurve.Evaluate(angleOfAttack * Mathf.Rad2Deg);
-        var liftCoefficient = 0.1f;
+        var liftCoefficient = aoaCurve.Evaluate(angleOfAttack * Mathf.Rad2Deg);
         var liftForce = v2 * liftCoefficient * liftPower;
         //lift is perpendicular to velocity
-        //var liftDirection = Vector3.Cross(liftVelocity.normalized, rightAxis);
-        var liftDirection = new Vector3(0, 0, -1);
-        var lift = liftDirection * liftForce;
-
-        // Debug
-        Debug.Log(
-            "Lift Velocity: " + liftVelocity + ", " +
-            //"AoA: " + angleOfAttack * Mathf.Rad2Deg + ", " +
-            //"CL: " + liftCoefficient + ", " +
-            "Lift Force: " + liftForce + ", " +
-            "Lift Direction: " + liftDirection
-        );
-
+        var liftDirection = Vector3.Cross(liftVelocity.normalized, rightAxis);
+        inducedLift = liftDirection * liftForce;
         //induced drag varies with square of lift coefficient
-        //var dragForce = liftCoefficient * liftCoefficient;
-        //var dragDirection = -liftVelocity.normalized;
-        //var inducedDrag = dragDirection * v2 * dragForce * this.inducedDrag * inducedDragCurve.Evaluate(Mathf.Max(0, localVelocity.y));
-        //return lift + inducedDrag;
-        return lift;
+        var dragForce = liftCoefficient * liftCoefficient;
+        var dragDirection = -liftVelocity.normalized;
+        inducedDrag = dragDirection * v2 * dragForce * inducedDragPower * inducedDragCurve.Evaluate(Mathf.Max(0, localVelocity.z));
+        return inducedLift + inducedDrag;
     }
 
-    Vector3 UpdateLift()
+    void UpdateMode()
+    {
+        if (hoverMode)
+        {
+            x_input = playerInput.pitch;
+            y_input = playerInput.roll;
+            z_input = playerInput.yaw;
+
+            x_maxRate = maxHoverPitchRate;
+            y_maxRate = maxHoverRollRate;
+            z_maxRate = maxHoverYawRate;
+        }
+        else
+        {
+            x_input = playerInput.pitch;
+            y_input = playerInput.yaw;
+            z_input = playerInput.roll;
+
+            x_maxRate = maxLevelPitchRate;
+            y_maxRate = maxLevelRollRate;
+            z_maxRate = maxLevelYawRate;
+        }
+    }
+
+    void UpdateThrust(float dt)
+    {
+        thrust = playerInput.throttle * maxThrust * dt * Vector3.forward;
+        rgbd.AddRelativeForce(thrust);
+    }
+
+    void UpdateAngle(float dt)
+    {
+        if (hoverMode)
+        {
+            // Hover Flight Stick Input Mapping
+            // y = 𝑟(𝑥^3+𝑥(1−𝑓))(1−𝑔)/(1−𝑔|𝑥|)
+            //
+            // y = rate [-max,max]
+            // x = input [-1, 1]
+            // r = max
+            // f = exponential factor
+            // g = super exponential factor
+
+            // X (Pitch)
+            var r = x_maxRate;
+            var x = x_input;
+            var f = hoverExpo;
+            var g = hoverSuperExpo;
+            x_rate = r * (Mathf.Pow(x, 3) + x * (1 - f)) * (1 - g) / (1 - g * Mathf.Abs(x));
+
+            // Y (Roll)
+            r = y_maxRate;
+            x = y_input;
+            f = hoverExpo;
+            g = hoverSuperExpo;
+            y_rate = r * (Mathf.Pow(x, 3) + x * (1 - f)) * (1 - g) / (1 - g * Mathf.Abs(x));
+
+            // Z (Yaw)
+            r = z_maxRate;
+            x = z_input;
+            f = hoverExpoYaw;
+            g = hoverSuperExpoYaw;
+            z_rate = r * (Mathf.Pow(x, 3) + x * (1 - f)) * (1 - g) / (1 - g * Mathf.Abs(x));
+        }
+
+        else
+        {
+            // Level Flight Stick Input Mapping
+            // linear mapping [-1, 1] => [-r, r]
+
+            // Pitch
+            x_rate = x_input * x_maxRate;
+
+            // Yaw
+            y_rate = y_input * y_maxRate;
+
+            // Roll
+            z_rate = z_input * z_maxRate * -1;
+        }
+
+        transform.Rotate(Vector3.right, x_rate * dt);
+        transform.Rotate(Vector3.up, y_rate * dt);
+        transform.Rotate(Vector3.forward, z_rate * dt);
+    }
+
+    void UpdateLift(float dt)
     {
         var liftForce = CalculateLift(
-            angleOfAttack, -Vector3.forward,
+            angleOfAttack, Vector3.right,
             liftPower,
             liftAOACurve,
             inducedDragCurve
         );
 
-        rgbd.AddRelativeForce(liftForce);
-        return liftForce;
+        totalLift = liftForce * dt;
+
+        rgbd.AddRelativeForce(totalLift);
     }
 
-    float CalculateSteering(float dt, float angularVelocity, float targetVelocity, float acceleration)
+    void UpdateDrag(float dt)
     {
-        var error = targetVelocity - angularVelocity;
-        var accel = acceleration * dt;
-        return Mathf.Clamp(error, -accel, accel);
-    }
+        var lv = localVelocity;
+        var lv2 = lv.sqrMagnitude;  //velocity squared
+                                    //calculate coefficient of drag depending on direction on velocity
 
-    void UpdateSteering(float dt)
-    {
-        var speed = Mathf.Max(0, localVelocity.z);
-        var steeringPower = steeringCurve.Evaluate(speed);
-
-        Vector3 controlInput = new Vector3(playerInput.pitch, playerInput.roll, playerInput.yaw);
-        var targetAV = Vector3.Scale(controlInput, turnSpeed * steeringPower);
-        var av = localAngularVelocity * Mathf.Rad2Deg;
-
-        var correction = new Vector3(
-            CalculateSteering(dt, av.x, targetAV.x, turnAcceleration.x * steeringPower),
-            CalculateSteering(dt, av.y, targetAV.y, turnAcceleration.y * steeringPower),
-            CalculateSteering(dt, av.z, targetAV.z, turnAcceleration.z * steeringPower)
+        var coefficient = Utilities.Scale6(
+            lv.normalized,
+            dragRight.Evaluate(Mathf.Abs(lv.x)), dragLeft.Evaluate(Mathf.Abs(lv.x)),
+            dragTop.Evaluate(Mathf.Abs(lv.y)), dragBottom.Evaluate(Mathf.Abs(lv.y)),
+            dragForward.Evaluate(Mathf.Abs(lv.z)), dragBack.Evaluate(Mathf.Abs(lv.z))
         );
 
-        rgbd.AddRelativeTorque(correction * Mathf.Deg2Rad, ForceMode.VelocityChange);    //ignore rigidbody mass
+        //drag = coefficient.magnitude * lv2 * -lv.normalized;    //drag is opposite direction of velocity
+        drag = coefficient.magnitude * lv2 * -lv.normalized;    //drag is opposite direction of velocity
+
+        rgbd.AddRelativeForce(drag);
     }
 
-    void UpdateAngularDrag()
+    private void FixedUpdate()
     {
-        var av = localAngularVelocity;
-        var drag = av.sqrMagnitude * -av.normalized;    //squared, opposite direction of angular velocity
-        rgbd.AddRelativeTorque(Vector3.Scale(drag, angularDrag), ForceMode.Acceleration);  //ignore rigidbody mass
-    }
+        var dt = Time.deltaTime;
 
-    void FixedUpdate()
-    {
-        float dt = Time.deltaTime;
+        CalculateState();
 
-        // Calculate States
-        CalculateState(dt);
+        // Map player input to corresponding axis
+        // Map correct parameters to corresponding flight mode
+        UpdateMode();
 
-        // Debug
-        DebugState();
+        UpdateThrust(dt);
+        UpdateLift(dt);
+        UpdateAngle(dt);
+        UpdateDrag(dt);
 
-        // Apply Updates
-        UpdateThrust();
-        Vector3 liftForce = UpdateLift();
-        //UpdateSteering(dt);
-        //UpdateDrag();
-
-        // Debug
-        //Debug.Log("Lift force: " + liftForce);
-
-        // Calculate again for other systems to read the new state
-        CalculateState(dt);
+        CalculateState();
     }
 }

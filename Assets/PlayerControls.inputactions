@@ -49,6 +49,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Level Switch",
+                    "type": "Value",
+                    "id": "43e3edaf-5e1a-4112-aa05-f7e05bd3acfb",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -64,15 +73,37 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "f91cfb08-8945-4ec7-a742-74bb06e4d549",
+                    "name": "1D Axis",
+                    "id": "bc664ba0-4e01-4573-8d6c-bc84639fd23f",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Throttle",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "965e6d8d-64e2-4bc8-8ec1-743050b5013a",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Throttle",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "7238a4f4-1633-4d31-a45a-fd3839e549d0",
                     "path": "<Keyboard>/w",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Throttle",
                     "isComposite": false,
-                    "isPartOfComposite": false
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -216,6 +247,50 @@
                     "action": "Reset",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "67ec9c18-1fd1-4423-b5aa-3691aa15b758",
+                    "path": "<HID::FrSky Radiomaster TX12 Joystick>/slider1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Level Switch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "1D Axis",
+                    "id": "51240fc8-458f-4786-988c-982d0020b434",
+                    "path": "1DAxis(minValue=0)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Level Switch",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "700ba31f-7c11-410d-8334-848239c80a2d",
+                    "path": "<Keyboard>/u",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Level Switch",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "6a4532ba-cf3f-43ee-a049-dcd827c24ce9",
+                    "path": "<Keyboard>/o",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Level Switch",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         }
